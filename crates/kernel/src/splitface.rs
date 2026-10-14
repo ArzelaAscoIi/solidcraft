@@ -827,6 +827,12 @@ fn split_one(faces: &mut Vec<mt::Face>, fi: usize, g: &Field, size: f64, new_edg
 
 /// The plane or circular cylinder a (B-spline) surface is, as a field with the surface's
 /// normal; other surfaces as they are.
+/// Whether splitting by face `face` of `body` would trace its surface as a free-form field
+/// (a nearest-point search per sample) rather than as a plane or a cylinder.
+pub(crate) fn is_free_form_tool(body: &Body, face: usize) -> bool {
+    body.solid.face_iter().nth(face).is_none_or(|f| matches!(surface_field(&f.oriented_surface()), Field::Surface(_)))
+}
+
 fn surface_field(s: &mt::Surface) -> Field {
     let (Some((u0, u1)), Some((v0, v1))) = s.try_range_tuple() else { return Field::Surface(s.clone()) };
     if !matches!(s, mt::Surface::Plane(_) | mt::Surface::BSplineSurface(_) | mt::Surface::NurbsSurface(_)) {

@@ -617,6 +617,15 @@ fn imprinted(body: Body, mut h: Option<History>, n: Vec3, d: f64, tool: &Body, t
     let mut used: Vec<Option<crate::FaceSurface>> = Vec::new();
     for t in beside {
         let surface = crate::face_surface(tool, t);
+        // Only sides that split by a plane or a cylinder are imprinted. Tracing a free-form side
+        // (a loft or sweep through splines) finds the nearest point on its surface by a global
+        // search for every sample of the face it splits, which takes minutes on a face the
+        // size of a part: a spline wing joined to a fuselage and then mirrored looked like a
+        // hang. Without the imprint the glue below finds no match and the general boolean is
+        // asked, which handles such bodies as it did when the original was joined.
+        if crate::splitface::is_free_form_tool(tool, t) {
+            continue;
+        }
         if used.iter().any(|u| same_surface(u, &surface, tol)) {
             continue;
         }
